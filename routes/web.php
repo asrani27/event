@@ -5,12 +5,16 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ParticipantController;
 
-Route::get('/', [LoginController::class, 'showLoginForm']);
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+// Apply rate limiting to login routes to prevent brute force attacks
+Route::middleware(['throttle:5,1'])->group(function () {
+    Route::get('/', [LoginController::class, 'showLoginForm']);
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+});
+
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     // Dashboard Route
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
@@ -27,14 +31,20 @@ Route::middleware(['auth'])->group(function () {
     Route::post('admin/events/{event}/scan_kehadiran', [ParticipantController::class, 'processScan'])->name('admin.events.process_scan');
     Route::post('admin/events/{event}/import-excel', [ParticipantController::class, 'importExcel'])->name('admin.events.import_excel');
     Route::get('admin/events/{event}/export-excel', [ParticipantController::class, 'exportExcel'])->name('admin.events.export_excel');
+
+    // Protected API routes with authentication and rate limiting
+    Route::middleware(['throttle:30,1'])->group(function () {
+        Route::get('api/pegawai/search', [ParticipantController::class, 'searchPegawai'])->name('pegawai.search');
+    });
 });
 
-Route::get('api/pegawai/search', [ParticipantController::class, 'searchPegawai'])->name('pegawai.search');
-// Public Routes
-Route::get('/register', function () {
-    return view('register');
-})->name('register');
+// Public Routes with rate limiting
+Route::middleware(['throttle:10,1'])->group(function () {
+    Route::get('/register', function () {
+        return view('register');
+    })->name('register');
 
-Route::get('/password/request', function () {
-    return view('auth.passwords.email');
-})->name('password.request');
+    Route::get('/password/request', function () {
+        return view('auth.passwords.email');
+    })->name('password.request');
+});
