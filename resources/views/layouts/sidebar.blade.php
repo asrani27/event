@@ -1,6 +1,6 @@
 <aside id="sidebar"
     class="w-64 bg-white shadow-xl border-r border-purple-100 fixed lg:relative lg:translate-x-0 -translate-x-full transition-transform duration-300 ease-in-out h-full z-30 pt-16 lg:pt-0">
-    <div class="h-full overflow-y-auto">
+    <div class="h-full flex flex-col">
         <!-- Navigation menu -->
         <nav class="p-4 space-y-2">
             <!-- Dashboard -->
