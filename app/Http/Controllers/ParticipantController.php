@@ -203,15 +203,78 @@ class ParticipantController extends Controller
      */
     public function importExcel(Request $request, Event $event)
     {
+        // Enhanced validation with security checks
         $request->validate([
-            'excel_file' => 'required|mimes:xlsx,xls,csv|max:2048',
+            'excel_file' => [
+                'required',
+                'file',
+                'mimes:xlsx,xls,csv',
+                'max:2048', // 2MB max
+                // Custom validation to ensure file is actually Excel
+                function ($attribute, $value, $fail) {
+                    // Additional security checks
+                    $file = $value;
+                    
+                    // Check file signature (magic bytes)
+                    $fileContent = file_get_contents($file->getRealPath());
+                    $signatures = [
+                        'xlsx' => ["PK\x03\x04", "PK\x05\x06", "PK\x07\x08"], // ZIP signature for XLSX
+                        'xls' => ["\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"], // OLE2 signature for XLS
+                        'csv' => false // CSV doesn't have specific signature
+                    ];
+                    
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    $isValidSignature = false;
+                    
+                    if ($extension === 'csv') {
+                        // For CSV, check if it's actually text and contains comma/semicolon
+                        $isValidSignature = true;
+                    } elseif (isset($signatures[$extension])) {
+                        foreach ($signatures[$extension] as $signature) {
+                            if (strpos($fileContent, $signature) === 0) {
+                                $isValidSignature = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!$isValidSignature) {
+                        $fail('File yang diupload bukan file Excel yang valid atau telah dimodifikasi.');
+                    }
+                    
+                    // Check for malicious patterns in filename
+                    $filename = $file->getClientOriginalName();
+                    $maliciousPatterns = ['..', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '\0'];
+                    foreach ($maliciousPatterns as $pattern) {
+                        if (strpos($filename, $pattern) !== false) {
+                            $fail('Nama file mengandung karakter yang tidak diperbolehkan.');
+                        }
+                    }
+                    
+                    // Check file size again (additional security)
+                    if ($file->getSize() > 2048 * 1024) { // 2MB in bytes
+                        $fail('Ukuran file terlalu besar. Maksimal 2MB.');
+                    }
+                    
+                    // Additional check: ensure file doesn't contain executable content
+                    $this->validateFileContent($fileContent, $fail);
+                },
+            ],
         ]);
 
         try {
             $import = new ParticipantsImport($event->id);
             
-            // Use import with error handling
-            Excel::import($import, $request->file('excel_file'));
+            // Store file temporarily with secure naming
+            $file = $request->file('excel_file');
+            $secureFileName = 'import_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $tempPath = $file->storeAs('temp/imports', $secureFileName, ['disk' => 'local']);
+            
+            // Import directly from stored file path
+            Excel::import($import, $tempPath);
+            
+            // Clean up temporary file
+            @unlink(storage_path('app/' . $tempPath));
 
             // Update current participants count
             $event->current_participants = $event->participants()->count();
@@ -271,6 +334,54 @@ class ParticipantController extends Controller
         $fileName = 'Kehadiran_' . str_replace(' ', '_', $event->title) . '_' . date('Y-m-d_H-i-s') . '.xlsx';
         
         return Excel::download(new ParticipantsExport($event), $fileName);
+    }
+
+    /**
+     * Validate file content for malicious patterns
+     */
+    private function validateFileContent($content, $failCallback)
+    {
+        // Check for common malicious patterns
+        $maliciousPatterns = [
+            // PHP tags
+            '<?php',
+            '<?',
+            '?>',
+            // JavaScript tags
+            '<script',
+            '</script>',
+            'javascript:',
+            // Executable patterns
+            'eval(',
+            'exec(',
+            'system(',
+            'shell_exec(',
+            'passthru(',
+            // Base64 encoded PHP
+            'base64_decode',
+            // Common attack patterns
+            '$_POST',
+            '$_GET',
+            '$_REQUEST',
+            '$_COOKIE',
+            '$_SESSION',
+            // SQL injection patterns
+            'union select',
+            'drop table',
+            'insert into',
+            'delete from',
+            'update set',
+        ];
+        
+        $contentLower = strtolower($content);
+        foreach ($maliciousPatterns as $pattern) {
+            if (strpos($contentLower, $pattern) !== false) {
+                $failCallback('File mengandung konten yang mencurigakan atau berbahaya.');
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
