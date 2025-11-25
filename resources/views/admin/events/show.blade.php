@@ -21,8 +21,11 @@
                 <a href="{{ route('admin.events.scan_kehadiran', $event) }}"
                     class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                     <span>Scan Kehadiran</span>
                 </a>
@@ -193,8 +196,18 @@
 
             <!-- Quick Add Participant -->
             <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6 mb-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Tambah Peserta</h3>
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800">Tambah Peserta</h3>
+                            <p class="text-sm text-gray-500">Pilih metode penambahan peserta</p>
+                        </div>
+                    </div>
                     <span id="quick-add-status" class="text-sm font-medium">
                         @if ($event->current_participants < $event->max_participants)
                             <span class="text-green-600">{{ $event->max_participants - $event->current_participants }}
@@ -205,42 +218,80 @@
                     </span>
                 </div>
 
-                <!-- Tab Navigation -->
-                <div class="border-b border-gray-200 mb-4">
-                    <nav class="-mb-px flex space-x-8">
-                        <button onclick="switchTab('single')" id="single-tab"
-                            class="py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600">
-                            Tambah Satu
-                        </button>
-                        <button onclick="switchTab('import')" id="import-tab"
-                            class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                            Import Excel
-                        </button>
-                    </nav>
+                <!-- Modern Tab Navigation -->
+                <div class="relative mb-8">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl opacity-50">
+                    </div>
+                    <div class="relative bg-white rounded-xl shadow-sm border border-gray-100 p-1">
+                        <nav class="flex space-x-1">
+                            <button onclick="switchTab('single')" id="single-tab"
+                                class="flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md transform scale-105">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span>Tambah Satuan</span>
+                            </button>
+                            <button onclick="switchTab('import')" id="import-tab"
+                                class="flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-all duration-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
+                                </svg>
+                                <span>Import Excel</span>
+                            </button>
+                        </nav>
+                    </div>
                 </div>
 
                 <!-- Single Add Form -->
                 <div id="single-add-form">
                     @if ($event->current_participants < $event->max_participants)
-                        <div class="flex space-x-3">
-                            <div class="flex-1">
-                                <select id="quick_pegawai_select" name="pegawai_id"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                    <option value="">Pilih Pegawai...</option>
-                                </select>
+                        <div class="space-y-4">
+                            <div
+                                class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-800">Tambah Peserta Individual</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Cari dan pilih pegawai dari database untuk
+                                    ditambahkan ke event ini.</p>
                             </div>
-                            <button onclick="quickAddParticipant()"
-                                class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200 flex items-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                <span>Tambah Peserta</span>
-                            </button>
+
+                            <div class="flex space-x-3">
+                                <div class="flex-1">
+                                    <select id="quick_pegawai_select" name="pegawai_id"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                        <option value="">Pilih Pegawai...</option>
+                                    </select>
+                                </div>
+                                <button onclick="quickAddParticipant()"
+                                    class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    <span>Tambah Peserta</span>
+                                </button>
+                            </div>
                         </div>
                         @else
-                        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p class="text-sm text-red-800">Event sudah mencapai kapasitas maksimum</p>
+                        <div class="p-6 bg-red-50 border border-red-200 rounded-lg text-center">
+                            <div
+                                class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-red-800 font-medium">Event sudah mencapai kapasitas maksimum</p>
                         </div>
                         @endif
                 </div>
@@ -248,57 +299,99 @@
                 <!-- Import Form -->
                 <div id="import-form" class="hidden">
                     @if ($event->current_participants < $event->max_participants)
-                        <div class="space-y-4">
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h4 class="text-sm font-semibold text-blue-800 mb-2">Petunjuk Import Excel:</h4>
-                                <ul class="text-sm text-blue-700 space-y-1">
-                                    <li>• Format file: .xlsx atau .xls</li>
-                                    <li>• NIP harus berada di kolom A (dimulai dari baris 1)</li>
-                                    <li>• Pastikan NIP yang ada di Excel sudah terdaftar sebagai pegawai</li>
-                                    <li>• Sistem akan otomatis menambahkan pegawai yang valid ke event</li>
-                                </ul>
+                        <div class="space-y-6">
+                            <div
+                                class="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-100">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-800">Import Excel Massal</h4>
+                                </div>
+                                <div class="text-sm text-gray-600 space-y-2">
+                                    <div class="flex items-start space-x-2">
+                                        <span class="text-green-600 mt-0.5">•</span>
+                                        <span>Format file: .xlsx atau .xls</span>
+                                    </div>
+                                    <div class="flex items-start space-x-2">
+                                        <span class="text-green-600 mt-0.5">•</span>
+                                        <span>NIP harus berada di kolom A (dimulai dari baris 1)</span>
+                                    </div>
+                                    <div class="flex items-start space-x-2">
+                                        <span class="text-green-600 mt-0.5">•</span>
+                                        <span>Pastikan NIP yang ada di Excel sudah terdaftar sebagai pegawai</span>
+                                    </div>
+                                    <div class="flex items-start space-x-2">
+                                        <span class="text-green-600 mt-0.5">•</span>
+                                        <span>Sistem akan otomatis menambahkan pegawai yang valid ke event</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="flex items-center space-x-3">
-                                <div class="flex-1">
-                                    <input type="file" id="excel-file" accept=".xlsx,.xls"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
-                                    <p id="file-name" class="text-xs text-gray-500 mt-1">Belum ada file dipilih</p>
-                                </div>
-                                <button onclick="importExcel()"
-                                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div
+                                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                                <div
+                                    class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
                                         </path>
                                     </svg>
-                                    <span>Import</span>
-                                </button>
+                                </div>
+                                <div class="flex flex-col items-center space-y-4">
+                                    <div class="w-full">
+                                        <input type="file" id="excel-file" accept=".xlsx,.xls"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
+                                        <p id="file-name" class="text-xs text-gray-500 mt-2">Belum ada file dipilih</p>
+                                    </div>
+                                    <button onclick="importExcel()"
+                                        class="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                            </path>
+                                        </svg>
+                                        <span>Import Excel</span>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Import Progress -->
                             <div id="import-progress" class="hidden">
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Progress Import:</h4>
-                                    <div class="w-full bg-gray-200 rounded-full h-2">
-                                        <div id="import-progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Progress Import:</h4>
+                                    <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                                        <div id="import-progress-bar"
+                                            class="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-300"
                                             style="width: 0%"></div>
                                     </div>
-                                    <p id="import-status" class="text-sm text-gray-600 mt-2">Memproses...</p>
+                                    <p id="import-status" class="text-sm text-gray-600">Memproses...</p>
                                 </div>
                             </div>
 
                             <!-- Import Results -->
                             <div id="import-results" class="hidden">
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Hasil Import:</h4>
-                                    <div id="import-summary" class="text-sm space-y-1"></div>
+                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Hasil Import:</h4>
+                                    <div id="import-summary" class="text-sm space-y-2"></div>
                                 </div>
                             </div>
                         </div>
                         @else
-                        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p class="text-sm text-red-800">Event sudah mencapai kapasitas maksimum</p>
+                        <div class="p-6 bg-red-50 border border-red-200 rounded-lg text-center">
+                            <div
+                                class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-red-800 font-medium">Event sudah mencapai kapasitas maksimum</p>
                         </div>
                         @endif
                 </div>
@@ -306,7 +399,31 @@
 
             <!-- Participants List -->
             <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Daftar Peserta</h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Daftar Peserta</h3>
+                    @if ($event->participants->count() > 0)
+                    <a href="{{ route('admin.events.export_excel', $event) }}"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span>Export Kehadiran</span>
+                    </a>
+                    @else
+                    <button disabled
+                        class="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed transition duration-200 flex items-center space-x-2"
+                        title="Tambahkan peserta terlebih dahulu untuk mengaktifkan export">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span>Export Kehadiran</span>
+                    </button>
+                    @endif
+                </div>
 
                 <div id="participants-list">
                     @if ($event->participants->count() > 0)
@@ -314,6 +431,9 @@
                         <table class="w-full">
                             <thead class="bg-gray-50">
                                 <tr>
+                                    <th
+                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        No</th>
                                     <th
                                         class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         NIP</th>
@@ -335,8 +455,9 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200" id="participants-tbody">
-                                @foreach ($event->participants as $participant)
+                                @foreach ($event->participants as $key => $participant)
                                 <tr class="hover:bg-gray-50" data-participant-id="{{ $participant->id }}">
+                                    <td class="px-4 py-3 text-sm text-gray-900">{{ $key + 1 }}</td>
                                     <td class="px-4 py-3 text-sm text-gray-900">{{ $participant->nip }}</td>
                                     <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $participant->nama }}
                                     </td>
@@ -532,29 +653,48 @@
         if (quickAddForm) {
             if (currentParticipants < maxParticipants) {
                 quickAddForm.innerHTML = `
-                    <div class="flex space-x-3">
-                        <div class="flex-1">
-                            <select id="quick_pegawai_select" name="pegawai_id"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                <option value="">Pilih Pegawai...</option>
-                            </select>
+                    <div class="space-y-4">
+                        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
+                            <div class="flex items-center space-x-2 mb-3">
+                                <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-800">Tambah Peserta Individual</h4>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-4">Cari dan pilih pegawai dari database untuk ditambahkan ke event ini.</p>
                         </div>
-                        <button onclick="quickAddParticipant()"
-                            class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200 flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            <span>Tambah Peserta</span>
-                        </button>
+                        
+                        <div class="flex space-x-3">
+                            <div class="flex-1">
+                                <select id="quick_pegawai_select" name="pegawai_id"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    <option value="">Pilih Pegawai...</option>
+                                </select>
+                            </div>
+                            <button onclick="quickAddParticipant()"
+                                class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Tambah Peserta</span>
+                            </button>
+                        </div>
                     </div>
                 `;
                 // Re-initialize select2
                 initializeSelect2();
             } else {
                 quickAddForm.innerHTML = `
-                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p class="text-sm text-red-800">Event sudah mencapai kapasitas maksimum</p>
+                    <div class="p-6 bg-red-50 border border-red-200 rounded-lg text-center">
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-red-800 font-medium">Event sudah mencapai kapasitas maksimum</p>
                     </div>
                 `;
             }
@@ -567,13 +707,17 @@
         }
     }
 
-    function addParticipantToTable(participant) {
+    function addParticipantToTable(participant, index) {
         // Check if table exists, if not create it
         let tbody = document.getElementById('participants-tbody');
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50';
         row.setAttribute('data-participant-id', participant.id);
+        
+        const rowNumber = index || (tbody ? tbody.children.length + 1 : 1);
+        
         row.innerHTML = `
+            <td class="px-4 py-3 text-sm text-gray-900">${rowNumber}</td>
             <td class="px-4 py-3 text-sm text-gray-900">${participant.nip}</td>
             <td class="px-4 py-3 text-sm font-medium text-gray-900">${participant.nama}</td>
             <td class="px-4 py-3 text-sm text-gray-600">${participant.jabatan}</td>
@@ -611,6 +755,7 @@
                     <table class="w-full">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIP</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
@@ -627,12 +772,31 @@
         }
         
         tbody.appendChild(row);
+        
+        // Update row numbers for all rows
+        updateRowNumbers();
+    }
+
+    function updateRowNumbers() {
+        const tbody = document.getElementById('participants-tbody');
+        if (tbody) {
+            const rows = tbody.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const firstCell = rows[i].cells[0];
+                if (firstCell) {
+                    firstCell.textContent = i + 1;
+                }
+            }
+        }
     }
 
     function removeParticipantFromTable(participantId) {
         const row = document.querySelector(`tr[data-participant-id="${participantId}"]`);
         if (row) {
             row.remove();
+            
+            // Update row numbers
+            updateRowNumbers();
             
             // Check if table is empty and show empty state
             const tbody = document.getElementById('participants-tbody');
@@ -653,7 +817,7 @@
 
     function showMessage(message, type = 'success') {
         const messageDiv = document.createElement('div');
-        messageDiv.className = `fixed top-4 right-4 bg-${type === 'success' ? 'green' : 'red'}-50 border border-${type === 'success' ? 'green' : 'red'}-200 rounded-lg p-4 z-50`;
+        messageDiv.className = `fixed top-4 right-4 bg-${type === 'success' ? 'green' : 'red'}-50 border border-${type === 'success' ? 'green' : 'red'}-200 rounded-lg p-4 z-50 shadow-lg`;
         messageDiv.innerHTML = `
             <div class="flex items-center">
                 <svg class="w-5 h-5 text-${type === 'success' ? 'green' : 'red'}-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -818,10 +982,10 @@
             if (data.success) {
                 showMessage(data.message, 'success');
                 
-                // Update the status display in the table
+                // Update status display in table
                 const row = document.querySelector(`tr[data-participant-id="${participantId}"]`);
                 if (row) {
-                    const statusCell = row.cells[4]; // Status column
+                    const statusCell = row.cells[5]; // Status column (updated to account for No column)
                     const statusClass = {
                         'terdaftar': 'bg-blue-100 text-blue-800',
                         'hadir': 'bg-green-100 text-green-800',
@@ -864,13 +1028,15 @@
         const importForm = document.getElementById('import-form');
 
         if (tab === 'single') {
-            singleTab.className = 'py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600';
-            importTab.className = 'py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300';
+            // Active state for single tab
+            singleTab.className = 'flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md transform scale-105';
+            importTab.className = 'flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-all duration-200';
             singleForm.classList.remove('hidden');
             importForm.classList.add('hidden');
         } else if (tab === 'import') {
-            singleTab.className = 'py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300';
-            importTab.className = 'py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600';
+            // Active state for import tab
+            singleTab.className = 'flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-all duration-200';
+            importTab.className = 'flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-md transform scale-105';
             singleForm.classList.add('hidden');
             importForm.classList.remove('hidden');
         }

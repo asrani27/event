@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ParticipantsImport;
+use App\Exports\ParticipantsExport;
 
 class ParticipantController extends Controller
 {
@@ -260,6 +261,16 @@ class ParticipantController extends Controller
                 'message' => 'Gagal mengimport file: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Export participants to Excel
+     */
+    public function exportExcel(Event $event)
+    {
+        $fileName = 'Kehadiran_' . str_replace(' ', '_', $event->title) . '_' . date('Y-m-d_H-i-s') . '.xlsx';
+        
+        return Excel::download(new ParticipantsExport($event), $fileName);
     }
 
     /**

@@ -1,6 +1,8 @@
 <!-- Logout Confirmation Modal -->
-<div id="logoutModal" class="fixed inset-0 hidden flex items-center justify-center h-full w-full z-50 backdrop-blur-sm bg-white bg-opacity-10 transition-opacity duration-300">
-    <div class="p-5 border w-96 shadow-lg rounded-lg bg-white transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+<div id="logoutModal"
+    class="fixed inset-0 hidden flex items-center justify-center h-full w-full z-50 backdrop-blur-sm bg-gray-900 bg-opacity-75 transition-opacity duration-300">
+    <div class="p-5 border w-96 shadow-lg rounded-lg transform transition-all duration-300 scale-95 opacity-0"
+        id="modalContent">
         <div class="mt-3">
             <!-- Icon -->
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
