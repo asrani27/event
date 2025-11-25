@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,11 +29,13 @@
                     <!-- Logo -->
                     <div class="flex items-center ml-2 lg:ml-0">
                         <div class="flex-shrink-0">
-                            <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                            <div
+                                class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
                                 <span class="text-white font-bold text-sm">E</span>
                             </div>
                         </div>
-                        <h1 class="ml-3 text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <h1
+                            class="ml-3 text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                             Event Management
                         </h1>
                     </div>
@@ -41,7 +44,8 @@
                 <!-- Right side - User menu -->
                 <div class="flex items-center space-x-4">
                     <!-- Notifications -->
-                    <button class="p-2 rounded-full text-gray-600 hover:text-purple-600 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 relative">
+                    <button
+                        class="p-2 rounded-full text-gray-600 hover:text-purple-600 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 relative">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
@@ -52,8 +56,10 @@
 
                     <!-- User dropdown -->
                     <div class="relative">
-                        <button class="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition duration-200">
-                            <div class="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                        <button
+                            class="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition duration-200">
+                            <div
+                                class="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
                                 <span class="text-white font-semibold text-sm">A</span>
                             </div>
                             <span class="hidden md:block text-sm font-medium text-gray-700">Admin User</span>
@@ -83,12 +89,11 @@
     @include('partials.logout-modal')
 
     <!-- Mobile sidebar overlay -->
-    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden lg:hidden"
-        onclick="toggleSidebar()"></div>
+    <div id="sidebarOverlay" class="fixed inset-0 bg-opacity-50 z-20 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
     <!-- Scripts -->
     @stack('scripts')
-    
+
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -146,4 +151,5 @@
         });
     </script>
 </body>
+
 </html>

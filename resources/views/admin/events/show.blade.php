@@ -194,7 +194,7 @@
             <!-- Quick Add Participant -->
             <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Tambah Peserta Cepat</h3>
+                    <h3 class="text-xl font-semibold text-gray-800">Tambah Peserta</h3>
                     <span id="quick-add-status" class="text-sm font-medium">
                         @if ($event->current_participants < $event->max_participants)
                             <span class="text-green-600">{{ $event->max_participants - $event->current_participants }}
@@ -205,7 +205,22 @@
                     </span>
                 </div>
 
-                <div id="quick-add-form">
+                <!-- Tab Navigation -->
+                <div class="border-b border-gray-200 mb-4">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="switchTab('single')" id="single-tab"
+                            class="py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600">
+                            Tambah Satu
+                        </button>
+                        <button onclick="switchTab('import')" id="import-tab"
+                            class="py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            Import Excel
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Single Add Form -->
+                <div id="single-add-form">
                     @if ($event->current_participants < $event->max_participants)
                         <div class="flex space-x-3">
                             <div class="flex-1">
@@ -222,6 +237,64 @@
                                 </svg>
                                 <span>Tambah Peserta</span>
                             </button>
+                        </div>
+                        @else
+                        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p class="text-sm text-red-800">Event sudah mencapai kapasitas maksimum</p>
+                        </div>
+                        @endif
+                </div>
+
+                <!-- Import Form -->
+                <div id="import-form" class="hidden">
+                    @if ($event->current_participants < $event->max_participants)
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 class="text-sm font-semibold text-blue-800 mb-2">Petunjuk Import Excel:</h4>
+                                <ul class="text-sm text-blue-700 space-y-1">
+                                    <li>• Format file: .xlsx atau .xls</li>
+                                    <li>• NIP harus berada di kolom A (dimulai dari baris 1)</li>
+                                    <li>• Pastikan NIP yang ada di Excel sudah terdaftar sebagai pegawai</li>
+                                    <li>• Sistem akan otomatis menambahkan pegawai yang valid ke event</li>
+                                </ul>
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <div class="flex-1">
+                                    <input type="file" id="excel-file" accept=".xlsx,.xls"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
+                                    <p id="file-name" class="text-xs text-gray-500 mt-1">Belum ada file dipilih</p>
+                                </div>
+                                <button onclick="importExcel()"
+                                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                        </path>
+                                    </svg>
+                                    <span>Import</span>
+                                </button>
+                            </div>
+
+                            <!-- Import Progress -->
+                            <div id="import-progress" class="hidden">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Progress Import:</h4>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div id="import-progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                            style="width: 0%"></div>
+                                    </div>
+                                    <p id="import-status" class="text-sm text-gray-600 mt-2">Memproses...</p>
+                                </div>
+                            </div>
+
+                            <!-- Import Results -->
+                            <div id="import-results" class="hidden">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Hasil Import:</h4>
+                                    <div id="import-summary" class="text-sm space-y-1"></div>
+                                </div>
+                            </div>
                         </div>
                         @else
                         <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -419,55 +492,72 @@
         document.getElementById('participant-count').textContent = currentParticipants + ' / ' + maxParticipants;
 
         // Update statistics
-        document.getElementById('stats-current').textContent = currentParticipants;
-        document.getElementById('stats-remaining').textContent = remaining;
+        const statsCurrent = document.getElementById('stats-current');
+        const statsRemaining = document.getElementById('stats-remaining');
+        if (statsCurrent) statsCurrent.textContent = currentParticipants;
+        if (statsRemaining) statsRemaining.textContent = remaining;
 
         // Update slot status
         const slotStatus = document.getElementById('slot-status');
+        if (slotStatus) {
+            if (currentParticipants < maxParticipants) {
+                slotStatus.innerHTML = `
+                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p class="text-sm text-green-800">
+                            <strong id="available-slots">${remaining}</strong> slot tersedia
+                        </p>
+                    </div>
+                `;
+            } else {
+                slotStatus.innerHTML = `
+                    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-800">Event sudah penuh!</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Update quick add status and form
         const quickAddStatus = document.getElementById('quick-add-status');
         const quickAddForm = document.getElementById('quick-add-form');
+        
+        if (quickAddStatus) {
+            if (currentParticipants < maxParticipants) {
+                quickAddStatus.innerHTML = `<span class="text-green-600">${remaining} slot tersedia</span>`;
+            } else {
+                quickAddStatus.innerHTML = `<span class="text-red-600">Event penuh</span>`;
+            }
+        }
 
-        if (currentParticipants < maxParticipants) {
-            slotStatus.innerHTML = `
-                <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p class="text-sm text-green-800">
-                        <strong id="available-slots">${remaining}</strong> slot tersedia
-                    </p>
-                </div>
-            `;
-            quickAddStatus.innerHTML = `<span class="text-green-600">${remaining} slot tersedia</span>`;
-            quickAddForm.innerHTML = `
-                <div class="flex space-x-3">
-                    <div class="flex-1">
-                        <select id="quick_pegawai_select" name="pegawai_id"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="">Pilih Pegawai...</option>
-                        </select>
+        if (quickAddForm) {
+            if (currentParticipants < maxParticipants) {
+                quickAddForm.innerHTML = `
+                    <div class="flex space-x-3">
+                        <div class="flex-1">
+                            <select id="quick_pegawai_select" name="pegawai_id"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="">Pilih Pegawai...</option>
+                            </select>
+                        </div>
+                        <button onclick="quickAddParticipant()"
+                            class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>Tambah Peserta</span>
+                        </button>
                     </div>
-                    <button onclick="quickAddParticipant()"
-                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200 flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span>Tambah Peserta</span>
-                    </button>
-                </div>
-            `;
-            // Re-initialize select2
-            initializeSelect2();
-        } else {
-            slotStatus.innerHTML = `
-                <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-800">Event sudah penuh!</p>
-                </div>
-            `;
-            quickAddStatus.innerHTML = `<span class="text-red-600">Event penuh</span>`;
-            quickAddForm.innerHTML = `
-                <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p class="text-sm text-red-800">Event sudah mencapai kapasitas maksimum</p>
-                </div>
-            `;
+                `;
+                // Re-initialize select2
+                initializeSelect2();
+            } else {
+                quickAddForm.innerHTML = `
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-800">Event sudah mencapai kapasitas maksimum</p>
+                    </div>
+                `;
+            }
         }
 
         // Update available slots count
@@ -478,7 +568,8 @@
     }
 
     function addParticipantToTable(participant) {
-        const tbody = document.getElementById('participants-tbody');
+        // Check if table exists, if not create it
+        let tbody = document.getElementById('participants-tbody');
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50';
         row.setAttribute('data-participant-id', participant.id);
@@ -511,12 +602,11 @@
                 </div>
             </td>
         `;
-        tbody.appendChild(row);
 
-        // Remove empty state if it exists
-        const emptyState = document.querySelector('#participants-list .text-center');
-        if (emptyState) {
-            emptyState.parentElement.innerHTML = `
+        if (!tbody) {
+            // Table doesn't exist, create it from empty state
+            const participantsList = document.getElementById('participants-list');
+            participantsList.innerHTML = `
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50">
@@ -533,9 +623,10 @@
                     </table>
                 </div>
             `;
-            // Re-add participant row to the new table
-            document.getElementById('participants-tbody').appendChild(row);
+            tbody = document.getElementById('participants-tbody');
         }
+        
+        tbody.appendChild(row);
     }
 
     function removeParticipantFromTable(participantId) {
@@ -632,7 +723,7 @@
                     addParticipantToTable(newParticipant);
                 } else {
                     // If we don't have employee data, fetch it
-                    fetch(`/api/pegawai/search?q=${selectedPegawai}`)
+                    fetch(`api/pegawai/search?q=${selectedPegawai}`)
                         .then(response => response.json())
                         .then(pegawai => {
                             if (pegawai && pegawai.length > 0) {
@@ -765,6 +856,143 @@
             showMessage('Terjadi kesalahan. Silakan coba lagi.', 'error');
         });
     }
+
+    function switchTab(tab) {
+        const singleTab = document.getElementById('single-tab');
+        const importTab = document.getElementById('import-tab');
+        const singleForm = document.getElementById('single-add-form');
+        const importForm = document.getElementById('import-form');
+
+        if (tab === 'single') {
+            singleTab.className = 'py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600';
+            importTab.className = 'py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300';
+            singleForm.classList.remove('hidden');
+            importForm.classList.add('hidden');
+        } else if (tab === 'import') {
+            singleTab.className = 'py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300';
+            importTab.className = 'py-2 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600';
+            singleForm.classList.add('hidden');
+            importForm.classList.remove('hidden');
+        }
+    }
+
+    function importExcel() {
+        const fileInput = document.getElementById('excel-file');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showMessage('Silakan pilih file Excel terlebih dahulu.', 'error');
+            return;
+        }
+
+        // Check file extension
+        const fileName = file.name.toLowerCase();
+        if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+            showMessage('Format file tidak valid. Silakan pilih file .xlsx atau .xls', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('excel_file', file);
+
+        const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+        if (!csrfTokenElement) {
+            showMessage('CSRF token tidak ditemukan. Silakan refresh halaman.', 'error');
+            return;
+        }
+
+        // Show progress
+        document.getElementById('import-progress').classList.remove('hidden');
+        document.getElementById('import-results').classList.add('hidden');
+        document.getElementById('import-progress-bar').style.width = '0%';
+        document.getElementById('import-status').textContent = 'Mengupload file...';
+
+        fetch(`/admin/events/${currentEventId}/import-excel`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfTokenElement.getAttribute('content'),
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update progress
+                document.getElementById('import-progress-bar').style.width = '100%';
+                document.getElementById('import-status').textContent = 'Import selesai!';
+
+                // Show results
+                setTimeout(() => {
+                    document.getElementById('import-progress').classList.add('hidden');
+                    document.getElementById('import-results').classList.remove('hidden');
+                    
+                    const summary = document.getElementById('import-summary');
+                    summary.innerHTML = `
+                        <div class="text-green-700">
+                            <p><strong>✓ Berhasil:</strong> ${data.success_count} peserta ditambahkan</p>
+                        </div>
+                        ${data.duplicate_count > 0 ? `
+                            <div class="text-yellow-700">
+                                <p><strong>⚠ Duplikat:</strong> ${data.duplicate_count} peserta sudah terdaftar</p>
+                            </div>
+                        ` : ''}
+                        ${data.not_found_count > 0 ? `
+                            <div class="text-red-700">
+                                <p><strong>✗ Tidak ditemukan:</strong> ${data.not_found_count} NIP tidak valid</p>
+                            </div>
+                        ` : ''}
+                        ${data.details && data.details.length > 0 ? `
+                            <div class="mt-3 max-h-40 overflow-y-auto">
+                                <p class="font-semibold text-gray-700 mb-2">Detail:</p>
+                                ${data.details.map(detail => `
+                                    <div class="text-xs ${detail.status === 'success' ? 'text-green-600' : detail.status === 'duplicate' ? 'text-yellow-600' : 'text-red-600'}">
+                                        ${detail.status === 'success' ? '✓' : detail.status === 'duplicate' ? '⚠' : '✗'} 
+                                        NIP: ${detail.nip} - ${detail.message}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    `;
+
+                    // Add successful participants to table
+                    if (data.participants && data.participants.length > 0) {
+                        data.participants.forEach(participant => {
+                            addParticipantToTable(participant);
+                        });
+                    }
+
+                    // Update participant count
+                    updateParticipantCount(data.current_participants);
+
+                    // Clear file input
+                    fileInput.value = '';
+                    document.getElementById('file-name').textContent = 'Belum ada file dipilih';
+
+                    showMessage(data.message, 'success');
+                }, 1000);
+            } else {
+                document.getElementById('import-progress').classList.add('hidden');
+                showMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('import-progress').classList.add('hidden');
+            showMessage('Terjadi kesalahan saat mengimport. Silakan coba lagi.', 'error');
+        });
+    }
+
+    // File input change handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('excel-file');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const fileName = e.target.files[0] ? e.target.files[0].name : 'Belum ada file dipilih';
+                document.getElementById('file-name').textContent = fileName;
+            });
+        }
+    });
 
     function initializeSelect2() {
         $('#quick_pegawai_select').select2({

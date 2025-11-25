@@ -7,6 +7,9 @@ use App\Models\Event;
 use App\Models\Pegawai;
 use App\Models\Participant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ParticipantsImport;
 
 class ParticipantController extends Controller
 {
@@ -124,8 +127,30 @@ class ParticipantController extends Controller
             'qr_data' => 'required|string',
         ]);
 
-        // Assuming QR code contains NIP (Nomor Induk Pegawai)
-        $nip = $request->qr_data;
+        $qrData = $request->qr_data;
+
+        // Extract UUID from QR code URL
+        // Expected format: https://idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pns
+        $uuid = $this->extractUuidFromQrCode($qrData);
+
+        if (!$uuid) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format QR code tidak valid!'
+            ], 400);
+        }
+
+        // Get employee data from API
+        $pegawaiData = $this->getPegawaiDataFromApi($uuid);
+
+        if (!$pegawaiData) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mendapatkan data pegawai dari API!'
+            ], 500);
+        }
+
+        $nip = $pegawaiData['nip'];
 
         // Find participant by NIP for this event
         $participant = Participant::where('event_id', $event->id)
@@ -144,9 +169,6 @@ class ParticipantController extends Controller
             'status_kehadiran' => 'hadir',
         ]);
 
-        // Get employee data for response
-        $pegawai = Pegawai::where('nip', $nip)->first();
-
         return response()->json([
             'success' => true,
             'message' => 'Kehadiran berhasil dicatat!',
@@ -158,5 +180,121 @@ class ParticipantController extends Controller
                 'status_kehadiran' => $participant->status_kehadiran,
             ]
         ]);
+    }
+
+    /**
+     * Extract UUID from QR code URL
+     */
+    private function extractUuidFromQrCode($qrData)
+    {
+        // Pattern to match: https://idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pns
+        $pattern = '/https:\/\/idcardpegawai\.banjarmasinkota\.go\.id\/captcha\/([a-f0-9\-]{36})\/pns/';
+        
+        if (preg_match($pattern, $qrData, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Import participants from Excel file
+     */
+    public function importExcel(Request $request, Event $event)
+    {
+        $request->validate([
+            'excel_file' => 'required|mimes:xlsx,xls,csv|max:2048',
+        ]);
+
+        try {
+            $import = new ParticipantsImport($event->id);
+            
+            // Use import with error handling
+            Excel::import($import, $request->file('excel_file'));
+
+            // Update current participants count
+            $event->current_participants = $event->participants()->count();
+            $event->save();
+
+            $response = [
+                'success' => true,
+                'message' => 'Data peserta berhasil diimport!',
+                'imported_count' => $import->getImportedCount(),
+                'skipped_count' => $import->getSkippedCount(),
+                'current_participants' => $event->current_participants,
+                'max_participants' => $event->max_participants
+            ];
+
+            // Add validation errors if any
+            if ($import->hasValidationErrors()) {
+                $response['validation_errors'] = $import->getValidationErrors();
+                
+                // If there are validation errors but some records were imported, show partial success
+                if ($import->getImportedCount() > 0) {
+                    $response['message'] = 'Data peserta sebagian berhasil diimport dengan beberapa error!';
+                } else {
+                    $response['success'] = false;
+                    $response['message'] = 'Gagal mengimport file: ' . implode(', ', array_unique($import->getValidationErrors()));
+                }
+            }
+
+            return response()->json($response);
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            Log::error('Excel validation error: ' . json_encode($e->errors()));
+            
+            $errors = [];
+            foreach ($e->failures() as $failure) {
+                $errors[] = 'Baris ' . $failure->row() . ': ' . implode(', ', $failure->errors());
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimport file: ' . implode(', ', $errors),
+                'validation_errors' => $errors
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Excel import error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimport file: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get pegawai data from external API
+     */
+    private function getPegawaiDataFromApi($uuid)
+    {
+        $apiUrl = "https://lakasi.banjarmasinkota.go.id/api/pegawai/{$uuid}";
+        $bearerToken = "hqWMtGwhdqll4oK4gXhxl0qDKLPCOGufvkF4glNU";
+
+        try {
+            $client = new \GuzzleHttp\Client([
+                'timeout' => 10,
+                'verify' => false, // Disable SSL verification if needed
+            ]);
+
+            $response = $client->request('GET', $apiUrl, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $bearerToken,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            if ($response->getStatusCode() === 200) {
+                $data = json_decode($response->getBody()->getContents(), true);
+                
+                if (isset($data['nip'])) {
+                    return $data;
+                }
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch pegawai data from API: ' . $e->getMessage());
+            return null;
+        }
     }
 }

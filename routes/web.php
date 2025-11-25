@@ -25,6 +25,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('admin/events/{event}/participants/{participant}/status', [ParticipantController::class, 'updateStatus'])->name('admin.events.participants.updateStatus');
     Route::get('admin/events/{event}/scan_kehadiran', [ParticipantController::class, 'showScanPage'])->name('admin.events.scan_kehadiran');
     Route::post('admin/events/{event}/scan_kehadiran', [ParticipantController::class, 'processScan'])->name('admin.events.process_scan');
+    Route::post('admin/events/{event}/import-excel', [ParticipantController::class, 'importExcel'])->name('admin.events.import_excel');
 });
 
 Route::get('api/pegawai/search', [ParticipantController::class, 'searchPegawai'])->name('pegawai.search');
