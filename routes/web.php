@@ -32,6 +32,10 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::post('admin/events/{event}/scan_kehadiran', [ParticipantController::class, 'processScan'])->name('admin.events.process_scan');
     Route::post('admin/events/{event}/import-excel', [ParticipantController::class, 'importExcel'])->name('admin.events.import_excel');
     Route::get('admin/events/{event}/export-excel', [ParticipantController::class, 'exportExcel'])->name('admin.events.export_excel');
+    
+    // Scan Routes
+    Route::get('admin/events/{event}/scan', [EventController::class, 'scan'])->name('admin.events.scan');
+    Route::get('admin/events/{event}/get_scan_data', [EventController::class, 'getScanData'])->name('admin.events.get_scan_data');
 
     // Protected API routes with authentication and rate limiting
     Route::middleware(['throttle:30,1'])->group(function () {

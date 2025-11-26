@@ -103,4 +103,64 @@ class EventController extends Controller
         return redirect()->route('admin.events.index')
             ->with('success', 'Event berhasil dihapus!');
     }
+
+    /**
+     * Get scan data for real-time updates.
+     */
+    public function getScanData(Event $event)
+    {
+        $event->load('participants');
+        
+        // Get recent participants (last 10)
+        $scanHistory = $event->participants()
+            ->orderBy('updated_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function ($participant) {
+                return [
+                    'id' => $participant->id,
+                    'nama' => $participant->nama,
+                    'nip' => $participant->nip,
+                    'jabatan' => $participant->jabatan,
+                    'skpd' => $participant->skpd,
+                    'status_kehadiran' => $participant->status_kehadiran,
+                    'check_in' => $participant->check_in ? $participant->check_in->toISOString() : null,
+                ];
+            });
+
+        // Calculate statistics
+        $statistics = [
+            'hadir_count' => $event->participants->where('status_kehadiran', 'hadir')->count(),
+            'total_participants' => $event->current_participants,
+            'belum_hadir' => $event->participants->where('status_kehadiran', 'terdaftar')->count(),
+            'tidak_hadir' => $event->participants->where('status_kehadiran', 'tidak_hadir')->count(),
+            'present_percentage' => $event->current_participants > 0 
+                ? round(($event->participants->where('status_kehadiran', 'hadir')->count() / $event->current_participants) * 100) 
+                : 0,
+            'scan_today' => $event->participants->where('status_kehadiran', 'hadir')
+                ->where('check_in', '>=', now()->startOfDay())
+                ->where('check_in', '<=', now()->endOfDay())
+                ->count(),
+            'last_scan' => $event->participants->where('check_in', '!=', null)
+                ->sortByDesc('check_in')
+                ->first()
+                ?->check_in
+                ?->format('H:i') ?? '-',
+        ];
+
+        return response()->json([
+            'success' => true,
+            'scanHistory' => $scanHistory,
+            'statistics' => $statistics,
+        ]);
+    }
+
+    /**
+     * Show scan page for the event.
+     */
+    public function scan(Event $event)
+    {
+        $event->load('participants');
+        return view('admin.events.scan', compact('event'));
+    }
 }

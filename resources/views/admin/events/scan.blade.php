@@ -479,7 +479,7 @@
                     // Play success sound if available
                     playSuccessSound();
                     
-                    // Refresh the scan history and statistics after successful scan
+                    // Refresh data for successful first-time scans
                     refreshScanData();
                     
                     // Resume scanning after 2 seconds
@@ -518,8 +518,177 @@
 
     // Refresh scan data after successful scan
     function refreshScanData() {
-        // Reload the page to get updated data
-        location.reload();
+        // Update statistics without reloading the page
+        fetch(`/admin/events/${eventId}/get_scan_data`, {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update statistics
+                updateStatistics(data.statistics);
+                
+                // Update scan history
+                updateScanHistory(data.scanHistory);
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing data:', error);
+        });
+    }
+
+    // Update statistics in the UI
+    function updateStatistics(stats) {
+        // Update hadir count
+        const hadirCount = document.getElementById('hadir-count');
+        if (hadirCount) {
+            hadirCount.textContent = stats.hadir_count || 0;
+        }
+
+        // Update other statistics if needed
+        const elements = {
+            'total-participants': stats.total_participants,
+            'belum-hadir': stats.belum_hadir,
+            'tidak-hadir': stats.tidak_hadir,
+            'present-percentage': stats.present_percentage,
+            'scan-today': stats.scan_today,
+            'last-scan': stats.last_scan
+        };
+
+        Object.keys(elements).forEach(id => {
+            const element = document.getElementById(id);
+            if (element && elements[id] !== undefined) {
+                element.textContent = elements[id];
+            }
+        });
+    }
+
+    // Update scan history in the UI
+    function updateScanHistory(scanHistory) {
+        const scanHistoryContainer = document.getElementById('scan-history');
+        if (!scanHistoryContainer || !scanHistory || scanHistory.length === 0) {
+            return;
+        }
+
+        // Clear existing scan items
+        const existingItems = scanHistoryContainer.querySelectorAll('.scan-item');
+        existingItems.forEach(item => item.remove());
+
+        // Remove no results message if exists
+        const noResultsMessage = document.getElementById('no-results-message');
+        if (noResultsMessage) {
+            noResultsMessage.remove();
+        }
+
+        // Add new scan items
+        scanHistory.forEach(participant => {
+            const scanItem = createScanItem(participant);
+            scanHistoryContainer.insertBefore(scanItem, scanHistoryContainer.firstChild);
+        });
+
+        // Reapply current filters
+        const statusFilter = document.getElementById('status-filter').value;
+        const searchTerm = document.getElementById('search-scan').value.toLowerCase();
+        if (statusFilter || searchTerm) {
+            applyFilters(statusFilter, searchTerm);
+        }
+    }
+
+    // Create a scan item element
+    function createScanItem(participant) {
+        const div = document.createElement('div');
+        div.className = `scan-item border rounded-lg p-4 ${getStatusClass(participant.status_kehadiran)}`;
+        div.setAttribute('data-status', participant.status_kehadiran);
+        div.setAttribute('data-name', participant.nama.toLowerCase());
+        div.setAttribute('data-nip', participant.nip.toLowerCase());
+
+        const statusIcon = getStatusIcon(participant.status_kehadiran);
+        const statusBadge = getStatusBadge(participant.status_kehadiran);
+        const checkInTime = participant.check_in ? new Date(participant.check_in).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+        div.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        ${statusIcon}
+                    </div>
+                    <div>
+                        <p class="font-semibold ${getTextColorClass(participant.status_kehadiran)}">
+                            ${participant.nama}
+                        </p>
+                        <p class="text-sm ${getTextColorClass(participant.status_kehadiran)}">
+                            ${participant.nip}
+                        </p>
+                        <p class="text-xs ${getTextColorClass(participant.status_kehadiran)}">
+                            ${participant.jabatan} - ${participant.skpd}
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    ${statusBadge}
+                    <p class="text-xs text-gray-500 mt-1">${checkInTime} WIB</p>
+                </div>
+            </div>
+        `;
+
+        return div;
+    }
+
+    // Helper functions for styling
+    function getStatusClass(status) {
+        switch(status) {
+            case 'hadir': return 'bg-green-50 border-green-200';
+            case 'tidak_hadir': return 'bg-red-50 border-red-200';
+            default: return 'bg-blue-50 border-blue-200';
+        }
+    }
+
+    function getStatusIcon(status) {
+        const icons = {
+            'hadir': `
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            `,
+            'tidak_hadir': `
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            `,
+            'terdaftar': `
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            `
+        };
+        return icons[status] || icons['terdaftar'];
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            'hadir': '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>',
+            'tidak_hadir': '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Tidak Hadir</span>',
+            'terdaftar': '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Terdaftar</span>'
+        };
+        return badges[status] || badges['terdaftar'];
+    }
+
+    function getTextColorClass(status) {
+        switch(status) {
+            case 'hadir': return 'text-green-800';
+            case 'tidak_hadir': return 'text-red-800';
+            default: return 'text-blue-800';
+        }
     }
 
     // Filter functionality
