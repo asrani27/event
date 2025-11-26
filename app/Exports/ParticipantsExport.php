@@ -30,7 +30,8 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
             'nama',
             'jabatan',
             'skpd',
-            'status_kehadiran'
+            'status_kehadiran',
+            'check_in'
         ])->get();
 
         return $participants->map(function ($participant, $index) {
@@ -40,7 +41,8 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
                 'nama' => $participant->nama,
                 'jabatan' => $participant->jabatan,
                 'skpd' => $participant->skpd,
-                'status_kehadiran' => $this->formatStatus($participant->status_kehadiran)
+                'status_kehadiran' => $this->formatStatus($participant->status_kehadiran),
+                'check_in' => $participant->check_in ? $participant->check_in->format('d/m/Y H:i:s') : '-'
             ];
         });
     }
@@ -53,7 +55,8 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
             'NAMA',
             'JABATAN',
             'SKPD',
-            'STATUS KEHADIRAN'
+            'STATUS KEHADIRAN',
+            'WAKTU CHECK-IN'
         ];
     }
 
@@ -138,16 +141,16 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
                     ],
                 ]);
 
-                // Merge cells for better layout (updated to F column)
-                $sheet->mergeCells('A1:F1');
-                $sheet->mergeCells('A2:F2');
-                $sheet->mergeCells('A3:F3');
-                $sheet->mergeCells('A4:F4');
-                $sheet->mergeCells('A5:F5');
-                $sheet->mergeCells('A6:F6');
+                // Merge cells for better layout (updated to G column)
+                $sheet->mergeCells('A1:G1');
+                $sheet->mergeCells('A2:G2');
+                $sheet->mergeCells('A3:G3');
+                $sheet->mergeCells('A4:G4');
+                $sheet->mergeCells('A5:G5');
+                $sheet->mergeCells('A6:G6');
 
                 // Remove borders from event info section (clean look)
-                $sheet->getStyle('A1:F6')->applyFromArray([
+                $sheet->getStyle('A1:G6')->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE,
@@ -160,8 +163,8 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
                 $sheet->getStyle('B8:B' . $highestRow)->getNumberFormat()
                     ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
 
-                // Add black borders to participant data section (updated to F column)
-                $sheet->getStyle('A8:F' . $highestRow)->applyFromArray([
+                // Add black borders to participant data section (updated to G column)
+                $sheet->getStyle('A8:G' . $highestRow)->applyFromArray([
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
@@ -180,15 +183,15 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
                 $tidakHadirCount = $participants->where('status_kehadiran', 'tidak_hadir')->count();
                 $terdaftarCount = $participants->where('status_kehadiran', 'terdaftar')->count();
 
-                // Add summary headers and data (updated to F column)
+                // Add summary headers and data (updated to G column)
                 $sheet->setCellValue('A' . $summaryStartRow, 'RINGKASAN KEHADIRAN');
                 $sheet->setCellValue('A' . ($summaryStartRow + 1), 'Total Peserta: ' . $totalParticipants . ' orang');
                 $sheet->setCellValue('A' . ($summaryStartRow + 2), 'Hadir: ' . $hadirCount . ' orang');
                 $sheet->setCellValue('A' . ($summaryStartRow + 3), 'Tidak Hadir: ' . $tidakHadirCount . ' orang');
                 $sheet->setCellValue('A' . ($summaryStartRow + 4), 'Terdaftar: ' . $terdaftarCount . ' orang');
 
-                // Style summary section (except title row) - updated to F column
-                $sheet->getStyle('A' . ($summaryStartRow + 1) . ':F' . ($summaryStartRow + 4))->applyFromArray([
+                // Style summary section (except title row) - updated to G column
+                $sheet->getStyle('A' . ($summaryStartRow + 1) . ':G' . ($summaryStartRow + 4))->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'size' => 11,
@@ -207,8 +210,8 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
                     ],
                 ]);
 
-                // Style summary title (line 13 equivalent) - no bold, no special styling - updated to F column
-                $sheet->getStyle('A' . $summaryStartRow . ':F' . $summaryStartRow)->applyFromArray([
+                // Style summary title (line 13 equivalent) - no bold, no special styling - updated to G column
+                $sheet->getStyle('A' . $summaryStartRow . ':G' . $summaryStartRow)->applyFromArray([
                     'font' => [
                         'bold' => false,
                         'size' => 11,
@@ -227,12 +230,12 @@ class ParticipantsExport implements FromCollection, WithHeadings, WithTitle, Wit
                     ],
                 ]);
 
-                // Merge cells for summary (updated to F column)
-                $sheet->mergeCells('A' . $summaryStartRow . ':F' . $summaryStartRow);
-                $sheet->mergeCells('A' . ($summaryStartRow + 1) . ':F' . ($summaryStartRow + 1));
-                $sheet->mergeCells('A' . ($summaryStartRow + 2) . ':F' . ($summaryStartRow + 2));
-                $sheet->mergeCells('A' . ($summaryStartRow + 3) . ':F' . ($summaryStartRow + 3));
-                $sheet->mergeCells('A' . ($summaryStartRow + 4) . ':F' . ($summaryStartRow + 4));
+                // Merge cells for summary (updated to G column)
+                $sheet->mergeCells('A' . $summaryStartRow . ':G' . $summaryStartRow);
+                $sheet->mergeCells('A' . ($summaryStartRow + 1) . ':G' . ($summaryStartRow + 1));
+                $sheet->mergeCells('A' . ($summaryStartRow + 2) . ':G' . ($summaryStartRow + 2));
+                $sheet->mergeCells('A' . ($summaryStartRow + 3) . ':G' . ($summaryStartRow + 3));
+                $sheet->mergeCells('A' . ($summaryStartRow + 4) . ':G' . ($summaryStartRow + 4));
             },
         ];
     }

@@ -28,6 +28,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::delete('admin/events/{event}/participants/{participant}', [ParticipantController::class, 'destroy'])->name('admin.events.participants.destroy');
     Route::put('admin/events/{event}/participants/{participant}/status', [ParticipantController::class, 'updateStatus'])->name('admin.events.participants.updateStatus');
     Route::get('admin/events/{event}/scan_kehadiran', [ParticipantController::class, 'showScanPage'])->name('admin.events.scan_kehadiran');
+    Route::get('admin/events/{event}/riwayat_scan', [ParticipantController::class, 'showRiwayatScan'])->name('admin.events.riwayat_scan');
     Route::post('admin/events/{event}/scan_kehadiran', [ParticipantController::class, 'processScan'])->name('admin.events.process_scan');
     Route::post('admin/events/{event}/import-excel', [ParticipantController::class, 'importExcel'])->name('admin.events.import_excel');
     Route::get('admin/events/{event}/export-excel', [ParticipantController::class, 'exportExcel'])->name('admin.events.export_excel');

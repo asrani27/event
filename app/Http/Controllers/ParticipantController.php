@@ -165,20 +165,40 @@ class ParticipantController extends Controller
             ], 404);
         }
 
-        // Update attendance status to "hadir"
+        // Check if participant has already scanned (status is 'hadir' and check_in is not null)
+        if ($participant->status_kehadiran === 'hadir' && !is_null($participant->check_in)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Anda sudah scan!',
+                'already_scanned' => true,
+                'participant' => [
+                    'nip' => $participant->nip,
+                    'nama' => $participant->nama,
+                    'jabatan' => $participant->jabatan,
+                    'skpd' => $participant->skpd,
+                    'status_kehadiran' => $participant->status_kehadiran,
+                    'check_in' => $participant->check_in->format('H:i:s'),
+                ]
+            ]);
+        }
+
+        // Update attendance status to "hadir" and record check-in time
         $participant->update([
             'status_kehadiran' => 'hadir',
+            'check_in' => now(),
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Kehadiran berhasil dicatat!',
+            'already_scanned' => false,
             'participant' => [
                 'nip' => $participant->nip,
                 'nama' => $participant->nama,
                 'jabatan' => $participant->jabatan,
                 'skpd' => $participant->skpd,
                 'status_kehadiran' => $participant->status_kehadiran,
+                'check_in' => $participant->check_in->format('H:i:s'),
             ]
         ]);
     }
@@ -382,6 +402,17 @@ class ParticipantController extends Controller
         }
         
         return true;
+    }
+
+    /**
+     * Show riwayat scan page for an event
+     */
+    public function showRiwayatScan(Event $event)
+    {
+        // Load event with participants relationship
+        $event->load('participants');
+        
+        return view('admin.events.riwayat_scan', compact('event'));
     }
 
     /**

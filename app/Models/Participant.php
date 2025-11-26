@@ -14,6 +14,11 @@ class Participant extends Model
         'jabatan',
         'skpd',
         'status_kehadiran',
+        'check_in',
+    ];
+
+    protected $casts = [
+        'check_in' => 'datetime',
     ];
 
     public function event(): BelongsTo

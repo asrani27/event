@@ -22,7 +22,7 @@
         <p class="text-gray-600">Scan QR code pegawai untuk mencatat kehadiran di event: {{ $event->title }}</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6">
         <!-- Scanner Section -->
         <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
             <div class="mb-4">
@@ -97,64 +97,6 @@
             </div>
         </div>
 
-        <!-- Results Section -->
-        <div class="space-y-6">
-            <!-- Event Info -->
-            <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Event</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Event:</span>
-                        <span class="font-medium">{{ $event->title }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Tanggal:</span>
-                        <span class="font-medium">{{ $event->date->format('d F Y') }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Waktu:</span>
-                        <span class="font-medium">{{ $event->time->format('H:i') }} WIB</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Lokasi:</span>
-                        <span class="font-medium">{{ $event->location }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Scans -->
-            <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Scan Terbaru</h3>
-                <div id="recent-scans" class="space-y-3 max-h-64 overflow-y-auto">
-                    <div class="text-center text-gray-500 py-8">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z">
-                            </path>
-                        </svg>
-                        <p class="text-sm">Belum ada scan yang dilakukan</p>
-                        <p class="text-xs text-gray-400 mt-1">Scan QR code pegawai untuk mencatat kehadiran</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Statistics -->
-            <div class="bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl shadow-lg p-6 text-white">
-                <h3 class="text-lg font-semibold mb-4">Statistik Kehadiran</h3>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-purple-100 text-sm">Total Peserta</p>
-                        <p class="text-2xl font-bold">{{ $event->current_participants }}</p>
-                    </div>
-                    <div>
-                        <p class="text-purple-100 text-sm">Sudah Hadir</p>
-                        <p id="hadir-count" class="text-2xl font-bold">{{
-                            $event->participants->where('status_kehadiran', 'hadir')->count() }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -163,8 +105,6 @@
 <script>
     let html5QrcodeScanner = null;
     let eventId = {{ $event->id }};
-    let scanCount = 0;
-    let hadirCount = {{ $event->participants->where('status_kehadiran', 'hadir')->count() }};
 
     function updateStatus(message, type = 'info') {
         const statusDiv = document.getElementById('status-message');
@@ -257,23 +197,35 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                updateStatus('Kehadiran berhasil dicatat!', 'success');
-                addRecentScan(data.participant);
-                
-                // Update hadir count
-                hadirCount++;
-                document.getElementById('hadir-count').textContent = hadirCount;
-                
-                // Play success sound if available
-                playSuccessSound();
-                
-                // Resume scanning after 2 seconds
-                setTimeout(() => {
-                    if (html5QrcodeScanner) {
-                        html5QrcodeScanner.resume();
-                        updateStatus('Scanner aktif. Arahkan ke QR code pegawai.', 'success');
-                    }
-                }, 2000);
+                if (data.already_scanned) {
+                    // Handle already scanned case
+                    updateStatus(data.message, 'warning');
+                    
+                    // Play different sound for already scanned
+                    playWarningSound();
+                    
+                    // Resume scanning after 2 seconds
+                    setTimeout(() => {
+                        if (html5QrcodeScanner) {
+                            html5QrcodeScanner.resume();
+                            updateStatus('Scanner aktif. Arahkan ke QR code pegawai.', 'success');
+                        }
+                    }, 2000);
+                } else {
+                    // Handle successful first-time scan
+                    updateStatus(data.message, 'success');
+                    
+                    // Play success sound if available
+                    playSuccessSound();
+                    
+                    // Resume scanning after 2 seconds
+                    setTimeout(() => {
+                        if (html5QrcodeScanner) {
+                            html5QrcodeScanner.resume();
+                            updateStatus('Scanner aktif. Arahkan ke QR code pegawai.', 'success');
+                        }
+                    }, 2000);
+                }
             } else {
                 updateStatus(data.message, 'error');
                 
@@ -300,45 +252,6 @@
         });
     }
 
-    function addRecentScan(participant) {
-        const recentScansDiv = document.getElementById('recent-scans');
-        
-        // Remove empty state if it exists
-        const emptyState = recentScansDiv.querySelector('.text-center');
-        if (emptyState) {
-            emptyState.remove();
-        }
-        
-        // Create new scan item
-        const scanItem = document.createElement('div');
-        scanItem.className = 'p-3 bg-green-50 border border-green-200 rounded-lg';
-        scanItem.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="font-medium text-green-800">${participant.nama}</p>
-                    <p class="text-sm text-green-600">${participant.nip}</p>
-                    <p class="text-xs text-green-500">${participant.jabatan} - ${participant.skpd}</p>
-                </div>
-                <div class="text-right">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p class="text-xs text-green-600">Hadir</p>
-                </div>
-            </div>
-        `;
-        
-        // Add to top of list
-        recentScansDiv.insertBefore(scanItem, recentScansDiv.firstChild);
-        
-        // Keep only last 10 scans
-        const scans = recentScansDiv.children;
-        if (scans.length > 10) {
-            recentScansDiv.removeChild(scans[scans.length - 1]);
-        }
-        
-        scanCount++;
-    }
 
     function playSuccessSound() {
         // Create a simple beep sound using Web Audio API
@@ -357,6 +270,25 @@
         
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.2);
+    }
+
+    function playWarningSound() {
+        // Create a different beep sound for warning using Web Audio API
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 400; // Lower frequency for warning
+        oscillator.type = 'square'; // Different wave type for warning
+        
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
     }
 
     // Cleanup on page unload
