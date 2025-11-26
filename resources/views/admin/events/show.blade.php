@@ -198,9 +198,11 @@
             <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6 mb-6">
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
                             </svg>
                         </div>
                         <div>
@@ -397,143 +399,6 @@
                 </div>
             </div>
 
-            <!-- Participants List -->
-            <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xl font-semibold text-gray-800">Daftar Peserta</h3>
-                    @if ($event->participants->count() > 0)
-                    <a href="{{ route('admin.events.export_excel', $event) }}"
-                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        <span>Export Kehadiran</span>
-                    </a>
-                    @else
-                    <button disabled
-                        class="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed transition duration-200 flex items-center space-x-2"
-                        title="Tambahkan peserta terlebih dahulu untuk mengaktifkan export">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                            </path>
-                        </svg>
-                        <span>Export Kehadiran</span>
-                    </button>
-                    @endif
-                </div>
-
-                <div id="participants-list">
-                    @if ($event->participants->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        No</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        NIP</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Nama</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Jabatan</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        SKPD</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status Kehadiran</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200" id="participants-tbody">
-                                @foreach ($event->participants as $key => $participant)
-                                <tr class="hover:bg-gray-50" data-participant-id="{{ $participant->id }}">
-                                    <td class="px-4 py-3 text-sm text-gray-900">{{ $key + 1 }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900">{{ $participant->nip }}</td>
-                                    <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $participant->nama }}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $participant->jabatan }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-600">{{ $participant->skpd }}</td>
-                                    <td class="px-4 py-3 text-sm">
-                                        @switch($participant->status_kehadiran)
-                                        @case('terdaftar')
-                                        <span
-                                            class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                            Terdaftar
-                                        </span>
-                                        @break
-                                        @case('hadir')
-                                        <span
-                                            class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Hadir
-                                        </span>
-                                        @break
-                                        @case('tidak_hadir')
-                                        <span
-                                            class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                            Tidak Hadir
-                                        </span>
-                                        @break
-                                        @default
-                                        <span
-                                            class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            {{ $participant->status_kehadiran }}
-                                        </span>
-                                        @endswitch
-                                    </td>
-                                    <td class="px-4 py-3 text-sm">
-                                        <div class="flex space-x-2">
-                                            <select
-                                                onchange="updateAttendanceStatus({{ $participant->id }}, this.value)"
-                                                class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                                <option value="terdaftar" {{ $participant->status_kehadiran ==
-                                                    'terdaftar' ? 'selected' : '' }}>Terdaftar</option>
-                                                <option value="hadir" {{ $participant->status_kehadiran == 'hadir' ?
-                                                    'selected' : '' }}>Hadir</option>
-                                                <option value="tidak_hadir" {{ $participant->status_kehadiran ==
-                                                    'tidak_hadir' ? 'selected' : '' }}>Tidak Hadir</option>
-                                            </select>
-                                            <button onclick="deleteParticipant({{ $participant->id }})"
-                                                class="text-red-600 hover:text-red-900 transition duration-150">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                    </path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    @else
-                    <div class="text-center py-8">
-                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                            </path>
-                        </svg>
-                        <p class="text-gray-500">Belum ada peserta yang terdaftar</p>
-                        <p class="text-sm text-gray-400 mt-1">Gunakan "Tambah Peserta Cepat" di atas untuk menambahkan
-                            peserta</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
         </div>
 
         <!-- Sidebar -->
@@ -588,6 +453,141 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Participants List - Full Width -->
+<div class="p-6">
+    <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Daftar Peserta</h3>
+            @if ($event->participants->count() > 0)
+            <div class="relative flex-1 max-w-md">
+
+                <input type="text" id="participant-search" name="search_participant"
+                    placeholder="Cari peserta berdasarkan NIP, nama, jabatan, atau SKPD..."
+                    class="block w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm transition duration-150 ease-in-out">
+            </div>
+            <a href="{{ route('admin.events.export_excel', $event) }}"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                <span>Export Kehadiran</span>
+            </a>
+            @else
+            <button disabled
+                class="px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed transition duration-200 flex items-center space-x-2"
+                title="Tambahkan peserta terlebih dahulu untuk mengaktifkan export">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                    </path>
+                </svg>
+                <span>Export Kehadiran</span>
+            </button>
+            @endif
+        </div>
+
+        <div id="participants-list">
+            @if ($event->participants->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                No</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                NIP</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Jabatan</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                SKPD</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status Kehadiran</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200" id="participants-tbody">
+                        @foreach ($event->participants as $key => $participant)
+                        <tr class="hover:bg-gray-50" data-participant-id="{{ $participant->id }}">
+                            <td class="px-4 py-3 text-sm text-gray-900">{{ $key + 1 }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-900">{{ $participant->nip }}</td>
+                            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $participant->nama }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-gray-600">{{ $participant->jabatan }}</td>
+                            <td class="px-4 py-3 text-sm text-gray-600">{{ $participant->skpd }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                @switch($participant->status_kehadiran)
+                                @case('terdaftar')
+                                <span
+                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Terdaftar
+                                </span>
+                                @break
+                                @case('hadir')
+                                <span
+                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Hadir
+                                </span>
+                                @break
+                                @case('tidak_hadir')
+                                <span
+                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Tidak Hadir
+                                </span>
+                                @break
+                                @default
+                                <span
+                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ $participant->status_kehadiran }}
+                                </span>
+                                @endswitch
+                            </td>
+                            <td class="px-4 py-3 text-sm">
+                                <div class="flex space-x-2">
+                                    <select onchange="updateAttendanceStatus({{ $participant->id }}, this.value)"
+                                        class="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                        <option value="terdaftar" {{ $participant->status_kehadiran ==
+                                            'terdaftar' ? 'selected' : '' }}>Terdaftar</option>
+                                        <option value="hadir" {{ $participant->status_kehadiran == 'hadir' ?
+                                            'selected' : '' }}>Hadir</option>
+                                        <option value="tidak_hadir" {{ $participant->status_kehadiran ==
+                                            'tidak_hadir' ? 'selected' : '' }}>Tidak Hadir</option>
+                                    </select>
+                                    <button onclick="deleteParticipant({{ $participant->id }})"
+                                        class="text-red-600 hover:text-red-900 transition duration-150">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @else
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+                <p class="text-gray-500">Belum ada peserta yang terdaftar</p>
+                <p class="text-sm text-gray-400 mt-1">Gunakan "Tambah Peserta Cepat" di atas untuk menambahkan
+                    peserta</p>
+            </div>
+            @endif
         </div>
     </div>
 </div>
@@ -1192,7 +1192,82 @@
 
     $(document).ready(function() {
         initializeSelect2();
+        
+        // Initialize search functionality
+        const searchInput = document.getElementById('participant-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                filterParticipants(this.value.toLowerCase());
+            });
+        }
     });
+
+    function filterParticipants(searchTerm) {
+        const tbody = document.getElementById('participants-tbody');
+        if (!tbody) return;
+        
+        const rows = tbody.getElementsByTagName('tr');
+        let visibleCount = 0;
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            
+            // Search in NIP, Nama, Jabatan, and SKPD columns (indices 1, 2, 3, 4)
+            const nip = cells[1] ? cells[1].textContent.toLowerCase() : '';
+            const nama = cells[2] ? cells[2].textContent.toLowerCase() : '';
+            const jabatan = cells[3] ? cells[3].textContent.toLowerCase() : '';
+            const skpd = cells[4] ? cells[4].textContent.toLowerCase() : '';
+            
+            const matchesSearch = nip.includes(searchTerm) || 
+                                 nama.includes(searchTerm) || 
+                                 jabatan.includes(searchTerm) || 
+                                 skpd.includes(searchTerm);
+            
+            if (matchesSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+        
+        // Show/hide no results message
+        showNoResultsMessage(visibleCount === 0 && searchTerm !== '');
+    }
+
+    function showNoResultsMessage(show) {
+        const participantsList = document.getElementById('participants-list');
+        const existingMessage = document.getElementById('no-results-message');
+        
+        if (show && !existingMessage) {
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.id = 'no-results-message';
+            noResultsDiv.className = 'text-center py-8 bg-yellow-50 rounded-lg border border-yellow-200';
+            noResultsDiv.innerHTML = `
+                <svg class="mx-auto h-12 w-12 text-yellow-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-yellow-800 font-medium">Tidak ada peserta yang ditemukan</p>
+                <p class="text-sm text-yellow-600 mt-1">Coba gunakan kata kunci pencarian yang berbeda</p>
+            `;
+            participantsList.appendChild(noResultsDiv);
+        } else if (!show && existingMessage) {
+            existingMessage.remove();
+        }
+    }
+
+    // Override addParticipantToTable to apply search filter
+    const originalAddParticipantToTable = addParticipantToTable;
+    addParticipantToTable = function(participant, index) {
+        originalAddParticipantToTable(participant, index);
+        
+        // Re-apply search filter if search is active
+        const searchInput = document.getElementById('participant-search');
+        if (searchInput && searchInput.value.trim() !== '') {
+            filterParticipants(searchInput.value.toLowerCase());
+        }
+    };
 </script>
 
 @endpush
