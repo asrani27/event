@@ -119,6 +119,9 @@ class ParticipantController extends Controller
 
     public function showScanPage(Event $event)
     {
+        // Load event with participants relationship
+        $event->load('participants');
+        
         return view('admin.events.scan', compact('event'));
     }
 
