@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') - Event Management System</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -71,7 +71,7 @@
         @include('layouts.sidebar')
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto lg:ml-0">
+        <main class="flex-1 overflow-y-auto lg:ml-0 pb-safe">
             @yield('content')
         </main>
     </div>

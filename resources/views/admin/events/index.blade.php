@@ -3,7 +3,7 @@
 @section('title', 'Event Management')
 
 @section('content')
-<div class="p-6">
+<div class="p-6 pb-20 lg:pb-6">
     <!-- Page Header -->
     <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center">
         <div>
