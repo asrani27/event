@@ -165,5 +165,6 @@
         {{ $events->links() }}
     </div>
     @endif
+    <br /> <br /> <br /> <br />
 </div>
 @endsection
