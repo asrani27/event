@@ -10,7 +10,7 @@
     @stack('styles')
 </head>
 
-<body class="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 overflow-hidden">
+<body class="h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
     <!-- Navbar -->
     <nav class="bg-white shadow-lg border-b border-purple-100 fixed top-0 left-0 right-0 z-40">
         <div class="px-4 sm:px-6 lg:px-8">
