@@ -354,7 +354,12 @@ class ParticipantController extends Controller
      */
     public function exportExcel(Event $event)
     {
-        $fileName = 'Kehadiran_' . str_replace(' ', '_', $event->title) . '_' . date('Y-m-d_H-i-s') . '.xlsx';
+        // Sanitize event title for filename by removing problematic characters
+        $sanitizedTitle = preg_replace('/[\/\\\\]/', '', $event->title);
+        $sanitizedTitle = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $sanitizedTitle);
+        $sanitizedTitle = trim($sanitizedTitle);
+        
+        $fileName = 'Kehadiran_' . str_replace(' ', '_', $sanitizedTitle) . '_' . date('Y-m-d_H-i-s') . '.xlsx';
         
         return Excel::download(new ParticipantsExport($event), $fileName);
     }
