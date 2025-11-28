@@ -111,9 +111,10 @@ class EventController extends Controller
     {
         $event->load('participants');
         
-        // Get recent participants (last 10)
+        // Get recent participants who are present (hadir), ordered by check_in time (latest first)
         $scanHistory = $event->participants()
-            ->orderBy('updated_at', 'desc')
+            ->where('status_kehadiran', 'hadir')
+            ->orderBy('check_in', 'desc')
             ->take(10)
             ->get()
             ->map(function ($participant) {

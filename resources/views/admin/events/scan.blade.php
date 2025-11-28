@@ -148,18 +148,9 @@
             <!-- Recent Scans -->
             <div class="bg-white rounded-xl shadow-lg border border-purple-100 p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-                    <h3 class="text-lg font-semibold text-gray-800">Scan Terbaru</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Peserta Hadir</h3>
                     <div
                         class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-                        <!-- Filter Status -->
-                        <select id="status-filter" onchange="filterByStatus()"
-                            class="w-full sm:w-auto text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="">Semua Status</option>
-                            <option value="hadir">Hadir</option>
-                            <option value="terdaftar">Terdaftar</option>
-                            <option value="tidak_hadir">Tidak Hadir</option>
-                        </select>
-
                         <!-- Search -->
                         <div class="relative w-full sm:w-auto">
                             <input type="text" id="search-scan" placeholder="Cari nama atau NIP..."
@@ -174,8 +165,11 @@
                 </div>
 
                 <div id="scan-history" class="space-y-3 max-h-96 overflow-y-auto">
-                    @if ($event->participants->count() > 0)
-                    @foreach ($event->participants->sortByDesc('updated_at') as $participant)
+                    @php
+                        $hadirParticipants = $event->participants->where('status_kehadiran', 'hadir')->sortByDesc('check_in');
+                    @endphp
+                    @if ($hadirParticipants->count() > 0)
+                    @foreach ($hadirParticipants as $participant)
                     <div class="scan-item border rounded-lg p-4 {{ $participant->status_kehadiran == 'hadir' ? 'bg-green-50 border-green-200' : ($participant->status_kehadiran == 'tidak_hadir' ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200') }}"
                         data-status="{{ $participant->status_kehadiran }}"
                         data-name="{{ strtolower($participant->nama) }}" data-nip="{{ strtolower($participant->nip) }}">
@@ -248,15 +242,13 @@
                     @endforeach
                     @else
                     <div class="text-center py-12">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor"
+                        <svg class="w-12 h-12 mx-auto mb-4 text-green-300" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z">
-                            </path>
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <p class="text-gray-500">Belum ada peserta yang terdaftar</p>
-                        <p class="text-sm text-gray-400 mt-1">Tambahkan peserta terlebih dahulu untuk melihat riwayat
-                            scan</p>
+                        <p class="text-gray-500">Belum ada peserta yang hadir</p>
+                        <p class="text-sm text-gray-400 mt-1">Scan QR code peserta untuk mencatat kehadiran</p>
                     </div>
                     @endif
                 </div>
@@ -584,17 +576,19 @@
             noResultsMessage.remove();
         }
 
-        // Add new scan items
+        // Add new scan items (only show 'hadir' status participants)
+        // Since scanHistory is already ordered by check_in desc, we append in order
         scanHistory.forEach(participant => {
-            const scanItem = createScanItem(participant);
-            scanHistoryContainer.insertBefore(scanItem, scanHistoryContainer.firstChild);
+            if (participant.status_kehadiran === 'hadir') {
+                const scanItem = createScanItem(participant);
+                scanHistoryContainer.appendChild(scanItem);
+            }
         });
 
-        // Reapply current filters
-        const statusFilter = document.getElementById('status-filter').value;
+        // Reapply current search filter
         const searchTerm = document.getElementById('search-scan').value.toLowerCase();
-        if (statusFilter || searchTerm) {
-            applyFilters(statusFilter, searchTerm);
+        if (searchTerm) {
+            applyFilters(searchTerm);
         }
     }
 
@@ -691,38 +685,28 @@
         }
     }
 
-    // Filter functionality
-    function filterByStatus() {
-        const statusFilter = document.getElementById('status-filter').value;
-        const searchTerm = document.getElementById('search-scan').value.toLowerCase();
-        applyFilters(statusFilter, searchTerm);
-    }
-
     // Search functionality
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('search-scan');
         if (searchInput) {
             searchInput.addEventListener('input', function() {
-                const statusFilter = document.getElementById('status-filter').value;
                 const searchTerm = this.value.toLowerCase();
-                applyFilters(statusFilter, searchTerm);
+                applyFilters(searchTerm);
             });
         }
     });
 
-    function applyFilters(statusFilter, searchTerm) {
+    function applyFilters(searchTerm) {
         const scanItems = document.querySelectorAll('.scan-item');
         let visibleCount = 0;
 
         scanItems.forEach(item => {
-            const status = item.getAttribute('data-status');
             const name = item.getAttribute('data-name');
             const nip = item.getAttribute('data-nip');
 
-            const matchesStatus = !statusFilter || status === statusFilter;
             const matchesSearch = !searchTerm || name.includes(searchTerm) || nip.includes(searchTerm);
 
-            if (matchesStatus && matchesSearch) {
+            if (matchesSearch) {
                 item.style.display = '';
                 visibleCount++;
             } else {
@@ -744,7 +728,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <p class="text-yellow-800 font-medium">Tidak ada hasil yang ditemukan</p>
-                    <p class="text-sm text-yellow-600 mt-1">Coba gunakan filter atau kata kunci pencarian yang berbeda</p>
+                    <p class="text-sm text-yellow-600 mt-1">Coba gunakan kata kunci pencarian yang berbeda</p>
                 `;
                 scanHistory.appendChild(noResultsDiv);
             }
