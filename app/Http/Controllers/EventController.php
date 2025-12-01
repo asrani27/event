@@ -35,6 +35,7 @@ class EventController extends Controller
             'date' => 'required|date|after:today',
             'time' => 'required',
             'location' => 'required|string|max:255',
+            'jenis' => 'required|in:terbuka,tertutup',
             'status' => 'required|in:upcoming,ongoing,completed,cancelled',
             'max_participants' => 'required|integer|min:1'
         ]);
@@ -45,6 +46,7 @@ class EventController extends Controller
             'date' => $request->date,
             'time' => $request->time,
             'location' => $request->location,
+            'jenis' => $request->jenis,
             'status' => $request->status,
             'max_participants' => $request->max_participants,
             'current_participants' => 0
@@ -82,6 +84,7 @@ class EventController extends Controller
             'date' => 'required|date',
             'time' => 'required',
             'location' => 'required|string|max:255',
+            'jenis' => 'required|in:terbuka,tertutup',
             'status' => 'required|in:upcoming,ongoing,completed,cancelled',
             'max_participants' => 'required|integer|min:1',
             'current_participants' => 'required|integer|min:0|max:'.$request->max_participants

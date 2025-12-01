@@ -152,6 +152,37 @@
                             <p class="font-medium text-gray-900">{{ $event->max_participants }} Orang</p>
                         </div>
                     </div>
+
+                    <!-- Jenis Event -->
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <svg class="w-5 h-5 text-purple-600 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Jenis Event</p>
+                            <div class="flex items-center space-x-2">
+                                @switch($event->jenis)
+                                @case('terbuka')
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Terbuka
+                                </span>
+                                <p class="text-xs text-gray-500">Peserta dapat langsung scan tanpa pendaftaran</p>
+                                @break
+                                @case('tertutup')
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Tertutup
+                                </span>
+                                <p class="text-xs text-gray-500">Peserta harus didaftarkan terlebih dahulu</p>
+                                @break
+                                @endswitch
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

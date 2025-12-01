@@ -45,6 +45,8 @@
                         <th class="px-6 py-4 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
                             Lokasi</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
+                            Jenis</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
                             Status</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-purple-700 uppercase tracking-wider">
                             Peserta</th>
@@ -65,6 +67,20 @@
                             <div class="text-sm text-gray-500">{{ $event->time->format('H:i') }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $event->location }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @switch($event->jenis)
+                            @case('terbuka')
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Terbuka
+                            </span>
+                            @break
+                            @case('tertutup')
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Tertutup
+                            </span>
+                            @break
+                            @endswitch
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @switch($event->status)
                             @case('upcoming')
@@ -140,7 +156,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center">
+                        <td colspan="7" class="px-6 py-12 text-center">
                             <div class="text-gray-500">
                                 <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">

@@ -16,6 +16,7 @@ class Event extends Model
         'date',
         'time',
         'location',
+        'jenis',
         'status',
         'max_participants',
         'current_participants'

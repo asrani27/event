@@ -111,6 +111,25 @@
                 @enderror
             </div>
 
+            <!-- Jenis -->
+            <div>
+                <label for="jenis" class="block text-sm font-medium text-gray-700 mb-2">
+                    Jenis Event <span class="text-red-500">*</span>
+                </label>
+                <select 
+                    id="jenis" 
+                    name="jenis" 
+                    required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent transition duration-200">
+                    <option value="">Pilih Jenis Event</option>
+                    <option value="terbuka" {{ old('jenis', $event->jenis) == 'terbuka' ? 'selected' : '' }}>Terbuka</option>
+                    <option value="tertutup" {{ old('jenis', $event->jenis) == 'tertutup' ? 'selected' : '' }}>Tertutup</option>
+                </select>
+                @error('jenis')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <!-- Status and Max Participants Row -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Status -->

@@ -161,11 +161,45 @@ class ParticipantController extends Controller
             ->where('nip', $nip)
             ->first();
 
+        // Handle different event types
         if (!$participant) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Pegawai dengan NIP ' . $nip . ' tidak terdaftar di event ini!'
-            ], 404);
+            // If participant not found
+            if ($event->jenis === 'tertutup') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pegawai dengan NIP ' . $nip . ' tidak terdaftar di event tertutup ini!'
+                ], 404);
+            } else {
+                // For open events, create new participant automatically
+                $participant = Participant::create([
+                    'event_id' => $event->id,
+                    'nip' => $pegawaiData['nip'],
+                    'nama' => $pegawaiData['nama'],
+                    'jabatan' => $pegawaiData['jabatan'] ?? '-',
+                    'skpd' => $pegawaiData['skpd'] ?? $pegawaiData['unit_kerja'] ?? '-',
+                    'status_kehadiran' => 'hadir',
+                    'check_in' => now(),
+                ]);
+
+                // Update current participants count
+                $event->current_participants = $event->participants()->count();
+                $event->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Peserta baru berhasil ditambahkan dan kehadiran dicatat!',
+                    'already_scanned' => false,
+                    'is_new_participant' => true,
+                    'participant' => [
+                        'nip' => $participant->nip,
+                        'nama' => $participant->nama,
+                        'jabatan' => $participant->jabatan,
+                        'skpd' => $participant->skpd,
+                        'status_kehadiran' => $participant->status_kehadiran,
+                        'check_in' => $participant->check_in->format('H:i:s'),
+                    ]
+                ]);
+            }
         }
 
         // Check if participant has already scanned (status is 'hadir' and check_in is not null)
