@@ -121,7 +121,7 @@ class ParticipantController extends Controller
     {
         // Load event with participants relationship
         $event->load('participants');
-        
+
         return view('admin.events.scan', compact('event'));
     }
 
@@ -134,7 +134,7 @@ class ParticipantController extends Controller
         $qrData = $request->qr_data;
 
         // Extract UUID from QR code URL
-        // Expected format: https://idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pns
+        // Expected format: https://idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pns OR https://idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pppk
         $uuid = $this->extractUuidFromQrCode($qrData);
 
         if (!$uuid) {
@@ -246,8 +246,11 @@ class ParticipantController extends Controller
     private function extractUuidFromQrCode($qrData)
     {
         // Pattern to match: https://idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pns
-        $pattern = '/https:\/\/idcardpegawai\.banjarmasinkota\.go\.id\/captcha\/([a-f0-9\-]{36})\/pns/';
-        
+        // Pattern to match: https: //idcardpegawai.banjarmasinkota.go.id/captcha/{uuid}/pppk
+
+        // Single pattern that matches both pns and pppk
+        $pattern = '/https:\/\/idcardpegawai\.banjarmasinkota\.go\.id\/captcha\/([a-f0-9\-]{36})\/(pns|pppk)/';
+
         if (preg_match($pattern, $qrData, $matches)) {
             return $matches[1];
         }
@@ -271,7 +274,7 @@ class ParticipantController extends Controller
                 function ($attribute, $value, $fail) {
                     // Additional security checks
                     $file = $value;
-                    
+
                     // Check file signature (magic bytes)
                     $fileContent = file_get_contents($file->getRealPath());
                     $signatures = [
@@ -279,10 +282,10 @@ class ParticipantController extends Controller
                         'xls' => ["\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"], // OLE2 signature for XLS
                         'csv' => false // CSV doesn't have specific signature
                     ];
-                    
+
                     $extension = strtolower($file->getClientOriginalExtension());
                     $isValidSignature = false;
-                    
+
                     if ($extension === 'csv') {
                         // For CSV, check if it's actually text and contains comma/semicolon
                         $isValidSignature = true;
@@ -294,11 +297,11 @@ class ParticipantController extends Controller
                             }
                         }
                     }
-                    
+
                     if (!$isValidSignature) {
                         $fail('File yang diupload bukan file Excel yang valid atau telah dimodifikasi.');
                     }
-                    
+
                     // Check for malicious patterns in filename
                     $filename = $file->getClientOriginalName();
                     $maliciousPatterns = ['..', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '\0'];
@@ -307,12 +310,12 @@ class ParticipantController extends Controller
                             $fail('Nama file mengandung karakter yang tidak diperbolehkan.');
                         }
                     }
-                    
+
                     // Check file size again (additional security)
                     if ($file->getSize() > 2048 * 1024) { // 2MB in bytes
                         $fail('Ukuran file terlalu besar. Maksimal 2MB.');
                     }
-                    
+
                     // Additional check: ensure file doesn't contain executable content
                     $this->validateFileContent($fileContent, $fail);
                 },
@@ -321,15 +324,15 @@ class ParticipantController extends Controller
 
         try {
             $import = new ParticipantsImport($event->id);
-            
+
             // Store file temporarily with secure naming
             $file = $request->file('excel_file');
             $secureFileName = 'import_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
             $tempPath = $file->storeAs('temp/imports', $secureFileName, ['disk' => 'local']);
-            
+
             // Import directly from stored file path
             Excel::import($import, $tempPath);
-            
+
             // Clean up temporary file
             @unlink(storage_path('app/' . $tempPath));
 
@@ -349,7 +352,7 @@ class ParticipantController extends Controller
             // Add validation errors if any
             if ($import->hasValidationErrors()) {
                 $response['validation_errors'] = $import->getValidationErrors();
-                
+
                 // If there are validation errors but some records were imported, show partial success
                 if ($import->getImportedCount() > 0) {
                     $response['message'] = 'Data peserta sebagian berhasil diimport dengan beberapa error!';
@@ -360,10 +363,9 @@ class ParticipantController extends Controller
             }
 
             return response()->json($response);
-
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             Log::error('Excel validation error: ' . json_encode($e->errors()));
-            
+
             $errors = [];
             foreach ($e->failures() as $failure) {
                 $errors[] = 'Baris ' . $failure->row() . ': ' . implode(', ', $failure->errors());
@@ -392,9 +394,9 @@ class ParticipantController extends Controller
         $sanitizedTitle = preg_replace('/[\/\\\\]/', '', $event->title);
         $sanitizedTitle = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $sanitizedTitle);
         $sanitizedTitle = trim($sanitizedTitle);
-        
+
         $fileName = 'Kehadiran_' . str_replace(' ', '_', $sanitizedTitle) . '_' . date('Y-m-d_H-i-s') . '.xlsx';
-        
+
         return Excel::download(new ParticipantsExport($event), $fileName);
     }
 
@@ -434,7 +436,7 @@ class ParticipantController extends Controller
             'delete from',
             'update set',
         ];
-        
+
         $contentLower = strtolower($content);
         foreach ($maliciousPatterns as $pattern) {
             if (strpos($contentLower, $pattern) !== false) {
@@ -442,7 +444,7 @@ class ParticipantController extends Controller
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -453,7 +455,7 @@ class ParticipantController extends Controller
     {
         // Load event with participants relationship
         $event->load('participants');
-        
+
         return view('admin.events.riwayat_scan', compact('event'));
     }
 
@@ -480,7 +482,7 @@ class ParticipantController extends Controller
 
             if ($response->getStatusCode() === 200) {
                 $data = json_decode($response->getBody()->getContents(), true);
-                
+
                 if (isset($data['nip'])) {
                     return $data;
                 }
